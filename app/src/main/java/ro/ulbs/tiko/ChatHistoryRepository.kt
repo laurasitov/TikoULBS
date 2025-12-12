@@ -1,35 +1,42 @@
 package ro.ulbs.tiko
 
-import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "chat_history")
+/**
+ * A repository for managing chat history in memory, suitable for Compose state usage.
+ */
+class ChatHistoryRepository {
 
-class ChatHistoryRepository(private val context: Context) {
+    private val _messages: SnapshotStateList<ChatMessage> = mutableStateListOf()
+    val messages: List<ChatMessage> = _messages
 
-    private val messagesKey = stringPreferencesKey("chat_messages")
+    /**
+     * Adds a new message from the user to the history.
+     */
+    fun addUserMessage(text: String) {
+        val message = ChatMessage(
+            role = "user",
+            content = text
+        )
+        _messages.add(message)
+    }
 
-    val chatHistory: Flow<List<ChatMessage>> = context.dataStore.data
-        .map {
-            val jsonString = it[messagesKey]
-            if (jsonString != null) {
-                Json.decodeFromString<List<ChatMessage>>(jsonString)
-            } else {
-                emptyList()
-            }
-        }
+    /**
+     * Adds a new message from the assistant to the history.
+     */
+    fun addAssistantMessage(text: String) {
+        val message = ChatMessage(
+            role = "assistant",
+            content = text
+        )
+        _messages.add(message)
+    }
 
-    suspend fun saveChatHistory(messages: List<ChatMessage>) {
-        context.dataStore.edit {
-            it[messagesKey] = Json.encodeToString(messages)
-        }
+    /**
+     * Clears all messages from the chat history.
+     */
+    fun clear() {
+        _messages.clear()
     }
 }

@@ -82,7 +82,7 @@ fun MessageList(messages: List<ChatMessage>) {
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(messages) { message ->
+        items(messages, key = { it.id }) { message ->
             ChatBubble(message = message)
         }
     }
@@ -90,13 +90,14 @@ fun MessageList(messages: List<ChatMessage>) {
 
 @Composable
 fun ChatBubble(message: ChatMessage) {
-    val bubbleColor = if (message.isUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer
-    val alignment = if (message.isUser) Alignment.CenterEnd else Alignment.CenterStart
+    val isUser = message.role == "user"
+    val bubbleColor = if (isUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer
+    val alignment = if (isUser) Alignment.CenterEnd else Alignment.CenterStart
 
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = alignment) {
         Surface(shape = RoundedCornerShape(16.dp), color = bubbleColor) {
             Text(
-                text = message.text,
+                text = message.content,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
             )
         }

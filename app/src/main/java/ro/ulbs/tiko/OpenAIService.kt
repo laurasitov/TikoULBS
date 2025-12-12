@@ -8,8 +8,5 @@ interface OpenAIService {
 
     @Headers("Content-Type: application/json")
     @POST("v1/chat/completions")
-    suspend fun createChatCompletion(
-        @Body request: ChatRequest
-    ): ChatResponse
+    suspend fun getChatCompletion(@Body request: ChatRequest): ChatResponse
 }
-
