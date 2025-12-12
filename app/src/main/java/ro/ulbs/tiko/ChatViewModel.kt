@@ -29,7 +29,8 @@ class ChatViewModel : ViewModel() {
 
     init {
         if (repository.messages.isEmpty()) {
-            repository.addAssistantMessage("Hello! I'm Tiko, your ULBS assistant. How can I help you today?")
+            val welcomeMessage = "Hello! I'm Tiko, your ULBS student assistant. You can ask me about the academic calendar, scholarships, faculties, and other university procedures. How can I help you today?"
+            repository.addAssistantMessage(welcomeMessage)
         }
         _uiState.update { it.copy(messages = repository.messages) }
     }
