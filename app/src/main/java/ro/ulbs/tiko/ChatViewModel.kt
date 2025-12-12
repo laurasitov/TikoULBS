@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.net.UnknownHostException
 
 /**
  * Represents the UI state for the chat screen.
@@ -26,7 +28,6 @@ class ChatViewModel : ViewModel() {
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
     init {
-        // Add a welcome message on first launch
         if (repository.messages.isEmpty()) {
             repository.addAssistantMessage("Hello! I'm Tiko, your ULBS assistant. How can I help you today?")
         }
@@ -39,11 +40,16 @@ class ChatViewModel : ViewModel() {
             it.copy(
                 messages = repository.messages,
                 isLoading = true,
-                error = null // Clear previous errors
+                error = null
             )
         }
 
-        // Launch a coroutine to handle the request
+        if (isQuestionOutOfScope(userText)) {
+            repository.addAssistantMessage(OUT_OF_SCOPE_RESPONSE)
+            _uiState.update { it.copy(messages = repository.messages, isLoading = false) }
+            return
+        }
+
         viewModelScope.launch {
             try {
                 val request = buildChatRequest(repository.messages)
@@ -51,30 +57,32 @@ class ChatViewModel : ViewModel() {
 
                 response.choices.firstOrNull()?.messagePayload?.content?.let { assistantText ->
                     repository.addAssistantMessage(assistantText)
-                    _uiState.update {
-                        it.copy(
-                            messages = repository.messages,
-                            isLoading = false
-                        )
-                    }
-                } ?: _uiState.update { it.copy(error = "Assistant did not provide a response.", isLoading = false) }
+                } ?: run {
+                    handleApiError("The response from the assistant was empty.")
+                }
 
+            } catch (e: UnknownHostException) {
+                handleApiError("I couldn't connect to the internet. Please check your connection and try again.")
+            } catch (e: HttpException) {
+                handleApiError("I'm having trouble connecting to my services right now. Please try again in a moment.")
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = "An error occurred: ${e.message}", isLoading = false) }
+                handleApiError("An unexpected error occurred. Please try again.")
             }
+
+            // Always reset loading state
+            _uiState.update { it.copy(messages = repository.messages, isLoading = false) }
         }
+    }
+
+    private fun handleApiError(errorMessage: String) {
+        repository.addAssistantMessage(errorMessage)
     }
 
     private fun buildChatRequest(history: List<ChatMessage>): ChatRequest {
         val systemMessage = MessagePayload(role = "system", content = TIKO_SYSTEM_PROMPT)
-
         val chatMessages = history.map { message ->
-            MessagePayload(
-                role = message.role,
-                content = message.content
-            )
+            MessagePayload(role = message.role, content = message.content)
         }
-
         return ChatRequest(
             model = "gpt-4o-mini",
             messages = listOf(systemMessage) + chatMessages
