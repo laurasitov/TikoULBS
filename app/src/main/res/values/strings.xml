@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Tiko – ULBS Assistant</string>
+    <string name="app_description">Tiko is the official AI assistant for the “Lucian Blaga” University of Sibiu (ULBS). Get instant answers to your questions about the academic calendar, scholarships, faculties, and other university procedures.</string>
 </resources>

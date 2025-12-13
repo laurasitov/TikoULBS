@@ -20,7 +20,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -53,6 +53,7 @@ dependencies {
         // Core
         implementation("androidx.core:core-ktx:1.13.1")
         implementation("androidx.activity:activity-compose:1.9.0")
+        implementation("androidx.core:core-splashscreen:1.0.1")
 
         // Networking
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")

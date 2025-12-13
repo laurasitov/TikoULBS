@@ -27,9 +27,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,24 +51,13 @@ private val ASSISTANT_BUBBLE_SHAPE = RoundedCornerShape(topStart = 24.dp, topEnd
 @Composable
 fun ChatScreen(chatViewModel: ChatViewModel = viewModel()) {
     val uiState by chatViewModel.uiState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
 
-    uiState.error?.let {
-        LaunchedEffect(it) {
-            snackbarHostState.showSnackbar(message = it)
-        }
-    }
-
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) {
-        Column(modifier = Modifier.fillMaxSize().padding(it)) {
-            MessageList(messages = uiState.messages, isLoading = uiState.isLoading)
-            MessageInput(
-                onSendMessage = { text -> chatViewModel.sendMessage(text) },
-                isLoading = uiState.isLoading
-            )
-        }
+    Column(modifier = Modifier.fillMaxSize()) {
+        MessageList(messages = uiState.messages, isLoading = uiState.isLoading)
+        MessageInput(
+            onSendMessage = { text -> chatViewModel.sendMessage(text) },
+            isLoading = uiState.isLoading
+        )
     }
 }
 

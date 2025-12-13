@@ -15,8 +15,7 @@ import java.net.UnknownHostException
  */
 data class ChatUiState(
     val messages: List<ChatMessage> = emptyList(),
-    val isLoading: Boolean = false,
-    val error: String? = null
+    val isLoading: Boolean = false
 )
 
 class ChatViewModel : ViewModel() {
@@ -44,8 +43,7 @@ class ChatViewModel : ViewModel() {
         _uiState.update {
             it.copy(
                 messages = repository.messages,
-                isLoading = true,
-                error = null
+                isLoading = true
             )
         }
 
