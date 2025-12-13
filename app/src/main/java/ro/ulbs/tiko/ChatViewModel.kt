@@ -36,6 +36,10 @@ class ChatViewModel : ViewModel() {
     }
 
     fun sendMessage(userText: String) {
+        if (userText.isBlank()) {
+            return // Ignore empty input
+        }
+
         repository.addUserMessage(userText)
         _uiState.update {
             it.copy(
@@ -56,22 +60,27 @@ class ChatViewModel : ViewModel() {
                 val request = buildChatRequest(repository.messages)
                 val response = openAIService.getChatCompletion(request)
 
-                response.choices.firstOrNull()?.messagePayload?.content?.let { assistantText ->
+                val assistantText = response.choices.firstOrNull()?.messagePayload?.content
+                if (!assistantText.isNullOrBlank()) {
                     repository.addAssistantMessage(assistantText)
-                } ?: run {
-                    handleApiError("The response from the assistant was empty.")
+                } else {
+                    handleApiError("I'm sorry, but I couldn't generate a response. Please try again.")
                 }
 
             } catch (e: UnknownHostException) {
                 handleApiError("I couldn't connect to the internet. Please check your connection and try again.")
             } catch (e: HttpException) {
-                handleApiError("I'm having trouble connecting to my services right now. Please try again in a moment.")
+                if (e.code() == 429) {
+                    handleApiError("I'm currently receiving a lot of requests. Please try again in a few moments.")
+                } else {
+                    handleApiError("I'm having trouble connecting to my services right now. Please try again in a moment.")
+                }
             } catch (e: Exception) {
                 handleApiError("An unexpected error occurred. Please try again.")
+            } finally {
+                // Always reset loading state to ensure the UI is usable
+                _uiState.update { it.copy(messages = repository.messages, isLoading = false) }
             }
-
-            // Always reset loading state
-            _uiState.update { it.copy(messages = repository.messages, isLoading = false) }
         }
     }
 
